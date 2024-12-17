@@ -56,10 +56,18 @@ const PersonForm = (props) => {
           props.setPersons(props.persons.map(person => person.id !== existingPerson.id ? person : returnedPerson))
           props.setNewName('')
           props.setNewNumber('')
-          props.setNotification(`Updated ${returnedPerson.name}`)
+          props.setNotification({ message: `Updated ${returnedPerson.name}`, type: 'notification' })
           setTimeout(() => {
             props.setNotification(null)
           }, 5000)
+          props.setPersons(props.persons.map(person => person.id !== existingPerson.id ? person : returnedPerson))
+        })
+        .catch(error => {
+          props.setNotification({message: `Information of ${props.newName} has already been removed from the server`, type: 'error'})
+          setTimeout(() => {
+            props.setNotification(null)
+          }, 5000)
+          props.setPersons(props.persons.filter(person => person.id !== existingPerson.id))
         })
     }
   } else {
@@ -70,11 +78,18 @@ const PersonForm = (props) => {
         props.setPersons(props.persons.concat(returnedPerson))
         props.setNewName('')
         props.setNewNumber('')
-        props.setNotification(`Added ${returnedPerson.name}`)
+        props.setNotification({ message: `Added ${returnedPerson.name}`, type: 'notification' })
         setTimeout(() => {
           props.setNotification(null)
         }, 5000)
       })
+      .catch(error => {
+        props.setNotification({ message: `Failed to add ${props.newName}`, type:'error'})
+        setTimeout(() => {
+          props.setNotification(null)
+        }, 5000)
+      })
+      props.setPersons(props.persons.concat(personObject))
   }
 }
 
@@ -98,13 +113,13 @@ const PersonForm = (props) => {
   )
 }
 
-const Notification = ({ message }) => {
+const Notification = ({ message, type }) => {
   if (message === null) {
     return null
   }
 
   return (
-    <div className="notification">
+    <div className={type}>
       {message}
     </div>
   )
@@ -120,7 +135,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
-  const [notification, setNotification] = useState(null)
+  const [notification, setNotification] = useState({ message: null, type: '' })
 
   // Fetch data from server
   useEffect(() => {
@@ -144,18 +159,25 @@ const App = () => {
         .deletePerson(id)
         .then(() => {
           setPersons(persons.filter(person => person.id !== id))
-          setNotification('Deleted')
+          setNotification({ message: 'Person deleted', type: 'notification' })
           setTimeout(() => {
             setNotification(null)
           }, 5000)
         })
+        .catch(error => {
+          setNotification({ message: 'Failed to delete', type: 'error' })
+          setTimeout(() => {
+            setNotification(null)
+          }, 5000)
+        })
+        setPersons(persons.filter(person => person.id !== id))
     }
   }
 
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={notification} />
+      <Notification message={notification.message} type={notification.type} />
       <Filter newFilter={newFilter}
               setNewFilter={setNewFilter}
       />
