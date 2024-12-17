@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/personService'
 
 const Filter = (props) => {
   const handleFilterChange = (event) => {
@@ -18,7 +18,10 @@ const Persons = (props) => {
   return (
     <div>
       {props.persons.map(person => 
-        <div key={person.id}>{person.name} {person.number}</div>
+        <div key={person.id}>
+          {person.name} {person.number}
+          <button onClick={() => props.handleDelete(person.id)}>delete</button>
+        </div>
       )}
     </div>
   )
@@ -42,16 +45,30 @@ const PersonForm = (props) => {
       name: props.newName,
       number: props.newNumber
     }
-    // Check if the name is already in the phonebook
-    if (props.persons.map(person => person.name).includes(props.newName)) {
-      alert(`${props.newName} is already added to phonebook`)
-      return
-    } else {
-      props.setPersons(props.persons.concat(personObject))
-      props.setNewName('')
-      props.setNewNumber('')
+  // Check if the name is already in the phonebook
+  const existingPerson = props.persons.find(person => person.name === props.newName)
+  if (existingPerson) {
+    if (window.confirm(`${props.newName} is already added to phonebook, replace the old number with a new one?`)) {
+      // Update the existing person
+      personService
+        .update(existingPerson.id, personObject)
+        .then(returnedPerson => {
+          props.setPersons(props.persons.map(person => person.id !== existingPerson.id ? person : returnedPerson))
+          props.setNewName('')
+          props.setNewNumber('')
+        })
     }
+  } else {
+    // Save the new person to the server
+    personService
+      .create(personObject)
+      .then(returnedPerson => {
+        props.setPersons(props.persons.concat(returnedPerson))
+        props.setNewName('')
+        props.setNewNumber('')
+      })
   }
+}
 
   return (
     <form onSubmit={addPerson} >
@@ -87,11 +104,11 @@ const App = () => {
   // Fetch data from server
   useEffect(() => {
     console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
+    personService
+      .getAll()
+      .then(initialPersons => {
         console.log('promise fulfilled')
-        setPersons(response.data)
+        setPersons(initialPersons)
       })
   }, [])
 
@@ -99,6 +116,16 @@ const App = () => {
   const personsToShow = persons.filter(person =>
     person.name.toLowerCase().includes(newFilter.toLowerCase())
   )
+
+  const handleDelete = (id) => {
+    if (window.confirm('Do you really want to delete this person?')) {
+      personService
+        .deletePerson(id)
+        .then(() => {
+          setPersons(persons.filter(person => person.id !== id))
+        })
+    }
+  }
 
   return (
     <div>
@@ -117,7 +144,7 @@ const App = () => {
       />
       <div>debug: {newName} {newNumber}</div>
       <h2>Numbers</h2>
-      <Persons persons={personsToShow}/>
+      <Persons persons={personsToShow} handleDelete={handleDelete} />
     </div>
   )
 }
