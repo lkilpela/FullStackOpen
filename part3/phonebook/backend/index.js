@@ -1,8 +1,11 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
+
 const app = express()
 
 app.use(express.json())
+app.use(cors()) // Allow requests from all origins
 
 // Create a custom token to log the request body
 morgan.token('body', (req) => JSON.stringify(req.body));
@@ -62,6 +65,7 @@ app.delete('/api/persons/:id', (request, response) => {
 
 app.post('/api/persons', (request, response) => {
     const person = request.body
+    console.log('Received person:', person)
 
     if (!person.name || !person.number) {
         return response.status(400).json({ 

@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+// Update the base URL for the API requests to match the backend server's URL
 const baseUrl = 'http://localhost:3001/api/persons'
 
 const getAll = () => {
