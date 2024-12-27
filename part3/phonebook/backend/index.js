@@ -6,6 +6,7 @@ const app = express()
 
 app.use(express.json())
 app.use(cors()) // Allow requests from all origins
+app.use(express.static('dist')) // Serve the static files from the build directory
 
 // Create a custom token to log the request body
 morgan.token('body', (req) => JSON.stringify(req.body));
