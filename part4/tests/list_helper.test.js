@@ -27,8 +27,8 @@ describe('total likes', () => {
     })
 })
 
-describe('favorite blog', () => {
-  const favorite = [
+describe('blogs', () => {
+  const blogs = [
     {
       _id: "5a422a851b54a676234d17f7",
       title: "React patterns",
@@ -80,10 +80,25 @@ describe('favorite blog', () => {
   ]
 
   test('blog has the most likes', () => {
-    assert.deepStrictEqual(listHelper.favoriteBlog(favorite),{
+    assert.deepStrictEqual(listHelper.favoriteBlog(blogs),{
         title: "Canonical string reduction",
         author: "Edsger W. Dijkstra",
         likes: 12
       })
   })
+
+  test('author with the most blogs', () => {
+    assert.deepStrictEqual(listHelper.mostBlogs(blogs),{
+      author: "Robert C. Martin",
+      blogs: 3
+    })
+  })
+
+  test('author with the most likes', () => {
+    assert.deepStrictEqual(listHelper.mostLikes(blogs),{
+      author: "Edsger W. Dijkstra",
+      likes: 17
+    })
+  })
 })
+
